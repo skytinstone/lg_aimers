@@ -1,0 +1,12 @@
+{
+  "model_name": "EXAONE-1.2B-INT4",
+  "evaluation_date": "20260113_225610",
+  "total_time_minutes": 2.5063119967778524,
+  "results": {
+    "mmlu": {
+      "accuracy": 16.0,
+      "correct": 16,
+      "total": 100
+    }
+  }
+}

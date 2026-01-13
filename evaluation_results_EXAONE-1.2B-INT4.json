@@ -1,0 +1,48 @@
+{
+  "mmlu": {
+    "accuracy": 40.0,
+    "correct": 2,
+    "total": 5,
+    "by_subject": {
+      "abstract_algebra": {
+        "correct": 1,
+        "total": 1
+      },
+      "anatomy": {
+        "correct": 0,
+        "total": 1
+      },
+      "astronomy": {
+        "correct": 1,
+        "total": 1
+      },
+      "high_school_chemistry": {
+        "correct": 0,
+        "total": 1
+      },
+      "high_school_physics": {
+        "correct": 0,
+        "total": 1
+      }
+    }
+  },
+  "gpqa": {
+    "accuracy": 0.0,
+    "correct": 0,
+    "total": 2
+  },
+  "ifeval": {
+    "compliance_rate": 0.0,
+    "passed": 0,
+    "total": 3
+  },
+  "code": {
+    "note": "Code generation tested, execution requires sandbox environment"
+  },
+  "metadata": {
+    "model_name": "EXAONE-1.2B-INT4",
+    "model_path": "./quantized_models/exaone-1.2b-int4",
+    "evaluation_time_seconds": 5.38314414024353,
+    "device": "cuda"
+  }
+}
