@@ -1,6 +1,6 @@
 # LG AImers 8기 해커톤 - EXAONE 4.0 Quantization
 
-## 📌 프로젝트 개요
+## 프로젝트 개요
 - **주제**: EXAONE 4.0 모델 INT4 양자화  
   *(Weight: INT4, Activation: FP16)*  
 - **목표**: LG AI Research에서 공개한 EXAONE 4.0 모델(1.2B, 32B)을 INT4로 양자화하여  
@@ -11,7 +11,7 @@
 
 ---
 
-## 🎯 프로젝트 목표
+## 프로젝트 목표
 - **메모리 효율화**  
   - 32B 파라미터 모델을 제한된 GPU 환경(1080 Ti, 11GB VRAM)에서 실행 가능하도록 양자화
 - **성능 유지**  
@@ -21,20 +21,20 @@
 
 ---
 
-## 🖥️ 개발 환경
+## 개발 환경
 
-### 하드웨어
+### 하드웨어(Hardware)
 - **GPU**: NVIDIA GeForce GTX 1080 Ti (11GB VRAM)
 - **CPU**: 고성능 멀티코어 프로세서
 - **RAM**: 32GB 이상
 - **Storage**: SSD 100GB 이상 여유 공간
 
-### 소프트웨어
+### 소프트웨어(Software)
 - **OS**: Windows 11
 - **Python**: 3.10
 - **CUDA**: 11.3 (Driver: 13.0)
 
-### 주요 라이브러리
+### 주요 라이브러리(Depedencies)
 - PyTorch 2.x (CUDA 11.8)
 - Transformers 4.40+
 - BitsAndBytes 0.43.2+
@@ -160,14 +160,12 @@ python exaone_32B_quantization.py
 bash
 코드 복사
 python exaone_evaluation.py
+
 📈 성능 평가 계획
 평가 벤치마크
 MMLU: 다중 분야 언어 이해
-
 GPQA: 대학원 수준 과학 QA
-
 IFEval: 지시 준수 평가
-
 LiveCodeBench: 코딩 성능 평가
 
 평가 지표
@@ -179,41 +177,29 @@ EXAONE 32B (INT4)	TBD	TBD	TBD	TBD
 
 💡 핵심 기술
 BitsAndBytes NF4 양자화
-
 CPU Offloading & Device Mapping
-
 메모리 최적화 (max_memory, offload_folder)
 
 🔧 트러블슈팅
 PyTorch/Transformers 버전 충돌
-
 BitsAndBytes CPU offload 옵션 누락
-
 Meta Tensor 오류
-
 NumPy / 컴파일러 문제
 
 🏆 기대 효과
 제한된 GPU에서 32B 모델 실행
-
 비용 절감 및 접근성 향상
-
 로컬 실행 기반 프라이버시 보호
 
 🔮 향후 계획
-성능 평가 완료
+[]성능 평가 완료
+[]양자화 기법 추가 비교
+[]결과 문서화 및 모델 공유
 
-양자화 기법 추가 비교
-
-결과 문서화 및 모델 공유
-
-📧 연락처
+연락처(Contacts)
 작성자: 신민석
-
 소속: LG AImers 8기
-
 GitHub: https://www.github.com/skytinstone
-
 Email: stevenshin16@gmail.com
 
 📄 라이선스
@@ -221,19 +207,6 @@ Email: stevenshin16@gmail.com
 LG AI Research - EXAONE AI Model License Agreement 1.2 (NC) 를 따릅니다.
 
 Last Updated: 2026.01.13
-
-yaml
-코드 복사
-
----
-
-원하면 다음도 도와줄 수 있어:
-- `requirements.txt` **버전 고정 최종본**
-- 해커톤 제출용 **요약 README (1~2페이지)**
-- EXAONE 1.2B / 32B **결과 비교 그래프용 표**
-
-어디까지 정리할지 말해줘 👍
-
 
 
 
