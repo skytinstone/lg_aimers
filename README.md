@@ -42,20 +42,20 @@
 
 ---
 
-## 🔬 양자화 방법론
+## 양자화 방법론
 
 ### 양자화 전략
 
-#### 1️⃣ Weight: INT4 (NF4)
+#### Weight: INT4 (NF4)
 - NormalFloat 4-bit (NF4) 사용
 - 가중치를 4-bit로 압축하여 **메모리 사용량 약 75% 감소**
 - Double Quantization 적용
 
-#### 2️⃣ Activation: FP16
+#### Activation: FP16
 - 활성화 함수는 FP16 유지
 - 정확도와 연산 속도의 균형 유지
 
-#### 3️⃣ CPU Offloading
+#### CPU Offloading
 - GPU 메모리 부족 시 일부 레이어를 CPU로 offload
 - `device_map="auto"` 기반 자동 분산
 - `llm_int8_enable_fp32_cpu_offload=True` 설정
@@ -69,8 +69,8 @@ BitsAndBytesConfig(
     bnb_4bit_quant_type="nf4",              # NormalFloat 4-bit
     llm_int8_enable_fp32_cpu_offload=True   # CPU offload 허용
 )
-📊 양자화 결과
-🔹 EXAONE 1.2B 모델
+양자화 결과
+EXAONE 1.2B 모델
 항목	원본	INT4 양자화	감소율
 모델 크기	~2.5GB	~0.9GB	64%
 GPU 메모리	~2.5GB	~1.0GB	60%
@@ -91,7 +91,7 @@ INT4 레이어: 210개
 
 양자화 시간: 약 5~10분
 
-🔹 EXAONE 32B 모델
+EXAONE 32B 모델
 항목	원본	INT4 양자화	감소율
 모델 크기	~64GB	~16GB	75%
 GPU 메모리	~64GB	~8~10GB	85%
@@ -134,21 +134,21 @@ hackathon/
 │   └── exaone-32b-int4/
 │
 └── README.md
-🚀 실행 방법
-1️⃣ 환경 설정
+실행 방법
+환경 설정
 bash
 코드 복사
 python -m venv exaone32b
 exaone32b\Scripts\activate
 pip install -r requirements.txt
-2️⃣ API 키 설정
+API 키 설정
 .env 파일 생성:
 
 env
 코드 복사
 HF_TOKEN=your_huggingface_token_here
 FRIENDLI_API_KEY=your_friendli_api_key_here
-3️⃣ 양자화 실행
+양자화 실행
 bash
 코드 복사
 # 1.2B 모델 (5~10분)
@@ -156,12 +156,12 @@ python exaone_quantization.py
 
 # 32B 모델 (20~40분)
 python exaone_32B_quantization.py
-4️⃣ 모델 평가 (예정)
+모델 평가 (예정)
 bash
 코드 복사
 python exaone_evaluation.py
 
-📈 성능 평가 계획
+성능 평가 계획
 평가 벤치마크
 MMLU: 다중 분야 언어 이해
 GPQA: 대학원 수준 과학 QA
@@ -175,23 +175,23 @@ EXAONE 1.2B (INT4)	TBD	TBD	TBD	TBD
 EXAONE 32B (원본)	TBD	TBD	TBD	TBD
 EXAONE 32B (INT4)	TBD	TBD	TBD	TBD
 
-💡 핵심 기술
+핵심 기술
 BitsAndBytes NF4 양자화
 CPU Offloading & Device Mapping
 메모리 최적화 (max_memory, offload_folder)
 
-🔧 트러블슈팅
+트러블슈팅
 PyTorch/Transformers 버전 충돌
 BitsAndBytes CPU offload 옵션 누락
 Meta Tensor 오류
 NumPy / 컴파일러 문제
 
-🏆 기대 효과
+기대 효과
 제한된 GPU에서 32B 모델 실행
 비용 절감 및 접근성 향상
 로컬 실행 기반 프라이버시 보호
 
-🔮 향후 계획
+향후 계획
 []성능 평가 완료
 []양자화 기법 추가 비교
 []결과 문서화 및 모델 공유
