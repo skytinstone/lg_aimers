@@ -161,7 +161,18 @@ class ExaoneEvaluator:
         self.model_path = model_path
         self.model_name = model_name
         self.hf_token = os.getenv("HF_TOKEN")
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        # Mac M3 Pro 지원 추가
+        if torch.cuda.is_available():
+            self.device = "cuda"
+            self.compute_dtype = torch.float16
+        elif torch.backends.mps.is_available():
+            self.device = "mps"
+            self.compute_dtype = torch.bfloat16
+            print("[INFO] Apple Silicon (MPS) 감지 - bfloat16 모드 사용")
+        else:
+            self.device = "cpu"
+            self.compute_dtype = torch.float32
 
         ts = now_tag()
         self.log_filename = f"evaluation_log_{model_name}_{ts}.json"
@@ -713,15 +724,99 @@ def run_one_model(model_path, model_name, **kwargs):
     return scores
 
 
+def get_user_model_choice():
+    """사용자로부터 모델 타입과 크기를 입력받는 함수"""
+    import platform
+
+    print("\n" + "="*70)
+    print("EXAONE 모델 평가")
+    print("="*70)
+
+    # 환경 정보 표시
+    print("\n[현재 평가 환경]")
+    print(f"  운영체제: {platform.system()}")
+    print(f"  프로세서: {platform.processor()}")
+    print(f"  아키텍처: {platform.machine()}")
+
+    if torch.cuda.is_available():
+        print(f"  연산 장치: NVIDIA GPU (CUDA)")
+        print(f"  GPU: {torch.cuda.get_device_name(0)}")
+    elif torch.backends.mps.is_available():
+        print(f"  연산 장치: Apple Silicon (MPS)")
+    else:
+        print(f"  연산 장치: CPU")
+
+    # 1. 모델 타입 선택
+    print("\n평가하고 싶은 모델을 선택해주세요:")
+    print("1. Quantized(INT4) 모델")
+    print("2. Pruning + Quantized(INT4, Mac은 제외)")
+
+    model_type = None
+    while model_type not in ["1", "2"]:
+        model_type = input("\n선택 (1 또는 2): ").strip()
+        if model_type not in ["1", "2"]:
+            print("❌ 잘못된 입력입니다. 1 또는 2를 입력해주세요.")
+
+    # 2. 모델 크기 선택
+    print("\n어떤 모델로 선택하시겠습니까?")
+    print("- 32B: 32B 모델")
+    print("- 1.2B: 1.2B 모델")
+
+    model_size = None
+    while model_size not in ["32B", "32b", "1.2B", "1.2b"]:
+        model_size = input("\n선택 (32B 또는 1.2B): ").strip()
+        if model_size not in ["32B", "32b", "1.2B", "1.2b"]:
+            print("❌ 잘못된 입력입니다. 32B 또는 1.2B를 입력해주세요.")
+
+    # 정규화
+    model_size = model_size.lower()
+
+    # 3. Pruning 비율 선택 (Pruning 모델인 경우)
+    pruning_percent = None
+    if model_type == "2":
+        print("\nPruning 비율을 선택해주세요 (예: 30, 40, 50)")
+        while True:
+            try:
+                pruning_input = input("Pruning 비율 (숫자만 입력): ").strip()
+                pruning_percent = int(pruning_input)
+                if pruning_percent < 0 or pruning_percent > 100:
+                    print("❌ 0~100 사이의 값을 입력해주세요.")
+                    continue
+                break
+            except ValueError:
+                print("❌ 숫자를 입력해주세요.")
+
+    # 4. 경로 결정
+    if model_type == "1":
+        # Quantized만
+        if model_size == "1.2b":
+            model_path = "./quantized_models/exaone-1.2b-int4"
+            model_name = "EXAONE-1.2B-INT4"
+        else:  # 32b
+            model_path = "./quantized_models/exaone-32b-int4"
+            model_name = "EXAONE-32B-INT4"
+    else:
+        # Pruning + Quantized
+        if model_size == "1.2b":
+            model_path = f"./quantized_models/exaone-1.2b-pruned-int4-{pruning_percent}"
+            model_name = f"EXAONE-1.2B-Pruned-INT4-{pruning_percent}%"
+        else:  # 32b
+            model_path = f"./quantized_models/exaone-32b-pruned-int4-{pruning_percent}"
+            model_name = f"EXAONE-32B-Pruned-INT4-{pruning_percent}%"
+
+    print(f"\n✅ 선택된 모델: {model_name}")
+    print(f"✅ 모델 경로: {model_path}")
+
+    return model_path, model_name, model_size
+
+
 def main():
     import argparse
-    p = argparse.ArgumentParser(description="EXAONE full evaluation + final table")
-    p.add_argument("--sequence", action="store_true", help="1.2B -> 32B 순차 실행")
+    p = argparse.ArgumentParser(description="EXAONE full evaluation")
+    p.add_argument("--auto", action="store_true", help="자동 모드 (기존 동작)")
     args = p.parse_args()
 
-    # 네가 요청한 기본 세팅(실행 가능성/시간 고려한 값)
-    # - 1.2B: MMLU 더 많이, extra 조금 더
-    # - 32B: MMLU 1500, extra는 조금 보수적으로
+    # 설정
     cfg_12b = dict(
         mmlu_samples=3000,
         gpqa_samples=None,
@@ -735,7 +830,7 @@ def main():
     )
 
     cfg_32b = dict(
-        mmlu_samples=1500,   # ✅ 요청 반영
+        mmlu_samples=1500,
         gpqa_samples=None,
         ifeval_samples=150,
         lcb_samples=50,
@@ -746,19 +841,28 @@ def main():
         ksm_samples=100,
     )
 
-    if args.sequence:
+    if args.auto:
+        # 기존 자동 모드 (--auto 플래그 사용 시)
+        print("[자동 모드] 기본 설정으로 평가를 시작합니다...")
         scores_12b = run_one_model("./quantized_models/exaone-1.2b-int4", "EXAONE-1.2B-INT4", **cfg_12b)
         scores_32b = run_one_model("./quantized_models/exaone-32b-int4", "EXAONE-32B-INT4", **cfg_32b)
-
-        # ✅ 최종 표 출력
         print_final_table(scores_12b, scores_32b)
-
     else:
-        # 단일(32B만) 실행 시에도 표 출력 형태 유지
-        scores_32b = run_one_model("./quantized_models/exaone-32b-int4", "EXAONE-32B-INT4", **cfg_32b)
-        print_final_table({}, scores_32b)
+        # 사용자 입력 모드 (기본)
+        model_path, model_name, model_size = get_user_model_choice()
 
-    print("✅ 완료")
+        # 모델 크기에 따라 설정 선택
+        cfg = cfg_12b if model_size == "1.2b" else cfg_32b
+
+        # 평가 실행
+        print(f"\n평가를 시작합니다...")
+        scores = run_one_model(model_path, model_name, **cfg)
+
+        # 결과 출력 (단일 모델)
+        print(f"\n{model_name} 평가 결과:")
+        print_final_table(scores if model_size == "1.2b" else {}, scores if model_size == "32b" else {})
+
+    print("\n✅ 완료")
 
 
 if __name__ == "__main__":

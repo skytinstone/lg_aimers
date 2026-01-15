@@ -1,0 +1,33 @@
+#Virtual Environment
+venv/
+exaone/
+exaone32b
+
+#Environment Variables
+.env
+
+#Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod]
+
+#model files
+models/
+quantized_models/
+*.pt
+*.bin
+*.safetensors
+*.pth
+
+#Jupyter Notebook
+.ipynb_checkpoints
+
+#IDE files
+.vscode/
+.idea/
+
+#Logs
+logs/
+*.log
